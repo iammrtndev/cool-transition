@@ -5,6 +5,7 @@
 	const pages = [
 		{ route: '/ressources', text: 'Ressources', color: '#ff667d' },
 		{ route: '/works', text: 'Works', color: '#ff9776' },
+		// { route: '/bonus', text: 'Bonus', color: '#82dab1' },
 		{ route: '/', text: 'About', color: '#8283da' },
 	]
 	let routeId = $page.routeId
@@ -16,7 +17,7 @@
 
 	let isTransitioning = false
 	navigating.subscribe(async (nav) => {
-		if (nav == null || isTransitioning) return
+		if (nav == null || isTransitioning || nav.from?.routeId == nav.to?.routeId) return
 
 		isTransitioning = true
 		const fromIdx = pages.findIndex((p) => p.route == nav.from?.routeId)
