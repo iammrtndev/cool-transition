@@ -17,7 +17,13 @@
 
 	let isTransitioning = false
 	navigating.subscribe(async (nav) => {
-		if (nav == null || isTransitioning || nav.from?.routeId == nav.to?.routeId) return
+		console.log(nav)
+		if (nav == null || isTransitioning) return
+
+		// Disable all links
+		document
+			.querySelectorAll<HTMLAnchorElement>('a')
+			.forEach((a) => (a.style.pointerEvents = 'none'))
 
 		isTransitioning = true
 		const fromIdx = pages.findIndex((p) => p.route == nav.from?.routeId)
@@ -55,7 +61,7 @@
 				onUpdate: () => {
 					cols = cols
 				},
-				duration: 0.4,
+				duration: 0.5,
 				ease: 'Power2.easeOut',
 			})
 		}
@@ -79,6 +85,7 @@
 		await gsap.to(`a:not([href="${pages[toIdx].route}"])`, {
 			duration: 0.5,
 			color: 'white',
+			pointerEvents: 'all',
 		})
 		isTransitioning = false
 	})
