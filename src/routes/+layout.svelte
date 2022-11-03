@@ -1,117 +1,127 @@
 <script lang="ts">
 	import { navigating, page } from '$app/stores'
-	import { gsap } from 'gsap'
+	import { onMount } from 'svelte'
 
-	const pages = [
+	type Page = {
+		route: string
+		text: string
+		color: string
+		aEl?: HTMLAnchorElement
+		bgEl?: HTMLDivElement
+		txt?: HTMLDivElement
+	}
+	const pages: Page[] = [
 		{ route: '/ressources', text: 'Ressources', color: '#ff667d' },
 		{ route: '/works', text: 'Works', color: '#ff9776' },
-		// { route: '/bonus', text: 'Bonus', color: '#82dab1' },
 		{ route: '/', text: 'About', color: '#8283da' },
 	]
-	let routeId = $page.routeId
-	const colWidth = 9
-	let cols: number[] = new Array(pages.length).fill(colWidth)
-	let currentIdx = pages.findIndex((p) => p.route == $page.routeId)
-	$: currentIdx = pages.findIndex((p) => p.route == $page.routeId)
-	cols[currentIdx] = 100 - (cols.length - 1) * colWidth
+	let routeId = $page.routeId!
+	let nextRouteId = routeId!
+	let animate = false
 
-	let isTransitioning = false
+	const widthVW = 9
+
 	navigating.subscribe(async (nav) => {
-		console.log(nav)
-		if (nav == null || isTransitioning) return
+		if (nav == null) return
 
-		// Disable all links
-		document
-			.querySelectorAll<HTMLAnchorElement>('a')
-			.forEach((a) => (a.style.pointerEvents = 'none'))
+		const fromIdx = pages.findIndex((p) => p.route == nav.from!.routeId)
+		const toIdx = pages.findIndex((p) => p.route == nav.to!.routeId)
+		const leftToRight = fromIdx > toIdx
+		nextRouteId = nav.to!.routeId!
 
-		isTransitioning = true
-		const fromIdx = pages.findIndex((p) => p.route == nav.from?.routeId)
-		const toIdx = pages.findIndex((p) => p.route == nav.to?.routeId)
-		const direction = fromIdx < toIdx ? 'ltr' : 'rtl'
+		const pagesSlide = pages.slice(Math.min(fromIdx, toIdx), Math.max(fromIdx, toIdx) + 1)
+		pagesSlide.forEach((p) => {
+			const route = p.aEl?.href.replace(location.origin, '')
+			const active = route == routeId
+			const activeNext = route == nextRouteId
+			console.log(route)
 
-		// Hide the links
-		await gsap.to('a', {
-			duration: 0.5,
-			color: 'transparent',
+			if (leftToRight) {
+				p.aEl!.style.setProperty('--delay', `${(pages.length - pages.indexOf(p) - 1) * 0.1}s`)
+				p.bgEl!.style.setProperty('--transform-origin-Start', 'left')
+				p.bgEl!.style.setProperty('--transform-origin-End', 'right')
+				p.bgEl!.style.setProperty('--transaleX-Start', '0vw')
+				p.bgEl!.style.setProperty('--transaleX-End', `${100 - widthVW * (pages.length - (activeNext ? 1 : 0))}vw`)
+				p.bgEl!.style.setProperty('--scale3d-x-Start', `${active ? 0 : 1}`)
+				p.bgEl!.style.setProperty('--scale3d-x-Mid', `${(100 - widthVW * (pages.length - 1)) / widthVW}`)
+				p.bgEl!.style.setProperty('--scale3d-x-End', `${activeNext ? 0 : 1}`)
+			} else {
+				p.aEl!.style.setProperty('--delay', `${pages.indexOf(p) * 0.1}s`)
+				p.bgEl!.style.setProperty('--transform-origin-Start', 'right')
+				p.bgEl!.style.setProperty('--transform-origin-End', 'left')
+				p.bgEl!.style.setProperty('--transaleX-Start', `${100 - widthVW * (pages.length - (active ? 1 : 0))}vw`)
+				p.bgEl!.style.setProperty('--transaleX-End', '0vw')
+				p.bgEl!.style.setProperty('--scale3d-x-Start', `${active ? 0 : 1}`)
+				p.bgEl!.style.setProperty('--scale3d-x-Mid', `${(100 - widthVW * (pages.length - 1)) / widthVW}`)
+				p.bgEl!.style.setProperty('--scale3d-x-End', `${active ? 0 : 1}`)
+			}
 		})
-
-		// Animate the current link (hidden)
-		await gsap.fromTo(
-			`[href="${pages[fromIdx].route}"]`,
-			{
-				order: direction == 'ltr' ? '1' : '0',
-				opacity: 1,
-				width: '0%',
-			},
-			{
-				width: '100%',
-				duration: 0.5,
-				ease: 'Power2.easeOut',
-			},
-		)
-
-		// Travel the blocks
-		let i = fromIdx
-		while ((direction == 'ltr' ? i++ : i--) != toIdx) {
-			const newCols = new Array(pages.length).fill(9)
-			newCols[i] = 100 - (newCols.length - 1) * colWidth
-			await gsap.to(cols, {
-				endArray: newCols,
-				onUpdate: () => {
-					cols = cols
-				},
-				duration: 0.5,
-				ease: 'Power2.easeOut',
-			})
-		}
-
-		await gsap.fromTo(
-			`[href="${pages[toIdx].route}"]`,
-			{
-				order: direction == 'ltr' ? 0 : 1,
-				width: '100%',
-			},
-			{
-				width: '0%',
-				duration: 0.2,
-				ease: 'Power2.easeOut',
-			},
-		)
-
-		routeId = nav.to!.routeId!
-
-		// Show the links
-		await gsap.to(`a:not([href="${pages[toIdx].route}"])`, {
-			duration: 0.5,
-			color: 'white',
-			pointerEvents: 'all',
+		const pagesStatic = pages.filter((p) => !pagesSlide.includes(p))
+		pagesStatic.forEach((p) => {
+			if (leftToRight) {
+				const translateX = '0vw'
+				const scale3dX = '1'
+				p.bgEl!.style.setProperty('--transaleX-Start', translateX)
+				p.bgEl!.style.setProperty('--transaleX-End', translateX)
+				p.bgEl!.style.setProperty('--scale3d-x-Start', scale3dX)
+				p.bgEl!.style.setProperty('--scale3d-x-Mid', scale3dX)
+				p.bgEl!.style.setProperty('--scale3d-x-End', scale3dX)
+			} else {
+				const translateX = `${100 - widthVW * pages.length}vw`
+				const scale3dX = `${(100 - widthVW * (pages.length - 1)) / widthVW}`
+				p.bgEl!.style.setProperty('--transaleX-Start', translateX)
+				p.bgEl!.style.setProperty('--transaleX-End', translateX)
+				p.bgEl!.style.setProperty('--scale3d-x-Start', scale3dX)
+				p.bgEl!.style.setProperty('--scale3d-x-Mid', scale3dX)
+				p.bgEl!.style.setProperty('--scale3d-x-End', scale3dX)
+			}
 		})
-		isTransitioning = false
+		animate = true
+	})
+
+	onMount(() => {
+		document.addEventListener('animationend', (e) => {
+			animate = false
+			// routeId = nextRouteId
+		})
 	})
 </script>
 
-<aside style={`grid-template-columns: ${cols.map((c) => (c ? c + 'vw' : 0)).join(' ')}`}>
-	{#each pages as page}
-		<section>
-			<a
-				href={page.route}
-				style={`background: ${page.color}; ${
-					page.route == routeId ? 'opacity: 0; pointer-events: none' : ''
-				}`}
+<aside>
+	{#each pages as page, i}
+		<a
+			bind:this={page.aEl}
+			class:animate
+			class:active={page.route == routeId}
+			href={page.route}
+			style={`
+				width: ${widthVW}vw;
+			`}
+		>
+			<div
+				bind:this={page.bgEl}
+				class="bg"
+				style={`
+					background: ${page.color};
+					max-width: ${widthVW}vw;
+				`}
+			/>
+			<div
+				bind:this={page.txt}
+				class="txt"
+				style={`
+					visibility: ${page.route == routeId ? 'hidden' : 'visible'};
+					--transaleX-Start: 0vw;
+					--transaleX-End: ${100 - widthVW * pages.length}vw;
+				`}
 			>
-				{page.text}
-			</a>
-			<div class="expand" />
-		</section>
+				<span>
+					{page.text}
+				</span>
+			</div>
+		</a>
 	{/each}
 </aside>
-
-<main style={`grid-template-columns: ${cols.map((c) => (c ? c + 'vw' : 0)).join(' ')}`}>
-	<div style={`grid-column: ${currentIdx + 1}`}>
-		<slot />
-	</div>
-</main>
 
 <style>
 	:global(*) {
@@ -121,34 +131,120 @@
 
 	:global(body) {
 		width: 100%;
-		overflow-x: hidden;
-		background: linear-gradient(0deg, #fff, #f9f5ed);
+		/* background: linear-gradient(0deg, #fff, #f9f5ed); */
 	}
 
 	aside {
 		height: 100vh;
-		display: grid;
+		width: 100%;
+		display: flex;
+		flex-direction: row;
 		position: fixed;
 	}
 
-	section {
-		display: flex;
-	}
-
-	.expand {
-		flex: 1;
-		pointer-events: none;
-	}
-
 	a {
-		width: 100%;
-		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		position: relative;
+		height: 100%;
+		width: var(--linkWidth);
 		text-decoration: none;
-		color: white;
+	}
+	a.active {
+		pointer-events: none;
+		flex: 1;
 	}
 
-	main {
-		display: grid;
-		min-height: 150vh;
+	a .bg {
+		transform: translateX(0) scale3d(1, 1, 1);
+		position: absolute;
+		height: 100%;
+		width: 100%;
+	}
+	a.active .bg {
+		transform: translateX(0) scale3d(0, 1, 1);
+	}
+
+	a .txt {
+		color: white;
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: xx-large;
+		position: absolute;
+		z-index: 2;
+		bottom: 40px;
+		left: 3.5vw;
+		writing-mode: vertical-rl;
+		overflow: hidden;
+	}
+
+	a .txt span {
+		position: relative;
+	}
+
+	:global(a.animate .txt),
+	:global(a.animate .txt span),
+	:global(a.animate .bg) {
+		animation-duration: 3s;
+		animation-timing-function: cubic-bezier(0.645, 0.045, 0.355, 1); /* easeInOutCubic */
+		animation-fill-mode: forwards;
+		animation-delay: var(--delay);
+	}
+	:global(a.animate .txt) {
+		animation-name: txt;
+	}
+	:global(a.animate .txt span) {
+		animation-name: txtSpan;
+	}
+	:global(a.animate .bg) {
+		animation-name: bg;
+	}
+	@keyframes txt {
+		0% {
+			transform: translateX(var(--transaleX-Start));
+		}
+		15% {
+			transform: translateX(var(--transaleX-Start));
+		}
+
+		100% {
+			transform: translateX(var(--transaleX-End));
+		}
+	}
+	@keyframes txtSpan {
+		0% {
+			right: 0px;
+		}
+		15% {
+			right: 40px;
+		}
+
+		90% {
+			right: 40px;
+		}
+		100% {
+			right: 0%;
+		}
+	}
+	@keyframes bg {
+		0% {
+			transform-origin: var(--transform-origin-Start);
+			transform: translateX(0) scale3d(var(--scale3d-x-Start), 1, 1);
+		}
+		20% {
+			transform-origin: var(--transform-origin-Start);
+			transform: translateX(0) scale3d(var(--scale3d-x-Start), 1, 1);
+		}
+
+		50% {
+			transform-origin: var(--transform-origin-Start);
+			transform: translateX(0) scale3d(var(--scale3d-x-Mid), 1, 1);
+		}
+
+		80% {
+			transform-origin: var(--transform-origin-Start);
+			transform: translateX(var(--transaleX-End)) scale3d(var(--scale3d-x-End), 1, 1);
+		}
+		100% {
+			transform-origin: var(--transform-origin-Start);
+			transform: translateX(var(--transaleX-End)) scale3d(var(--scale3d-x-End), 1, 1);
+		}
 	}
 </style>
