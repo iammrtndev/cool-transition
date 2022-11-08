@@ -130,7 +130,7 @@
 	}
 
 	.txt {
-		color: black;
+		color: white;
 		font-family: Arial, Helvetica, sans-serif;
 		font-size: xx-large;
 		position: absolute;
