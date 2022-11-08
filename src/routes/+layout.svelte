@@ -23,7 +23,7 @@
 		{ route: '/works', text: 'Works', color: '#ff9776' } as Page,
 		{ route: '/', text: 'About', color: '#8283da' } as Page,
 	]
-	let routeId = $page.routeId!
+	let routeId = $page.route.id!
 	let nextRouteId = routeId!
 
 	const widthVW = 9
@@ -36,10 +36,10 @@
 			p.txtSpan.classList.add('hide')
 		})
 		await Promise.all(pages.map((p) => waitForAnimationEnd(p.txtSpan!)))
-		const fromIdx = pages.findIndex((p) => p.route == nav.from!.routeId)
-		const toIdx = pages.findIndex((p) => p.route == nav.to!.routeId)
+		const fromIdx = pages.findIndex((p) => p.route == nav.from!.route.id)
+		const toIdx = pages.findIndex((p) => p.route == nav.to!.route.id)
 		const ltr = fromIdx > toIdx
-		nextRouteId = nav.to!.routeId!
+		nextRouteId = nav.to!.route.id!
 
 		const pagesSlide = pages.slice(Math.min(fromIdx, toIdx), Math.max(fromIdx, toIdx) + 1)
 		pagesSlide.forEach((p) => {
