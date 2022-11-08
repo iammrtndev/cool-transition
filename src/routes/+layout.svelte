@@ -9,27 +9,19 @@
 		})
 	}
 
-	function waitForTransitionEnd(target: HTMLElement) {
-		return new Promise((resolve) => {
-			document.addEventListener('transitionend', (event: TransitionEvent) => {
-				if (event.target == target) resolve(target)
-			})
-		})
-	}
-
 	type Page = {
 		route: string
 		text: string
 		color: string
-		a?: HTMLAnchorElement
-		bg?: HTMLDivElement
-		txt?: HTMLDivElement
-		txtSpan?: HTMLSpanElement
+		a: HTMLAnchorElement
+		bg: HTMLDivElement
+		txt: HTMLDivElement
+		txtSpan: HTMLSpanElement
 	}
 	const pages: Page[] = [
-		{ route: '/ressources', text: 'Ressources', color: '#ff667d' },
-		{ route: '/works', text: 'Works', color: '#ff9776' },
-		{ route: '/', text: 'About', color: '#8283da' },
+		{ route: '/ressources', text: 'Ressources', color: '#ff667d' } as Page,
+		{ route: '/works', text: 'Works', color: '#ff9776' } as Page,
+		{ route: '/', text: 'About', color: '#8283da' } as Page,
 	]
 	let routeId = $page.routeId!
 	let nextRouteId = routeId!
@@ -40,9 +32,10 @@
 		if (nav == null) return
 
 		pages.forEach((p) => {
-			p.txtSpan!.classList.add('hide')
+			p.a.style.pointerEvents = 'none'
+			p.txtSpan.classList.add('hide')
 		})
-		await Promise.all(pages.map((p) => waitForTransitionEnd(p.txtSpan!)))
+		await Promise.all(pages.map((p) => waitForAnimationEnd(p.txtSpan!)))
 		const fromIdx = pages.findIndex((p) => p.route == nav.from!.routeId)
 		const toIdx = pages.findIndex((p) => p.route == nav.to!.routeId)
 		const ltr = fromIdx > toIdx
@@ -50,52 +43,24 @@
 
 		const pagesSlide = pages.slice(Math.min(fromIdx, toIdx), Math.max(fromIdx, toIdx) + 1)
 		pagesSlide.forEach((p) => {
-			p.a?.classList.add(ltr ? 'ltr' : 'rtl')
-			// 	p.bg!.style.setProperty('--transform-origin-Start', 'left')
-			// 	p.bg!.style.setProperty('--transform-origin-End', 'right')
-			// 	p.bg!.style.setProperty('--transaleX-Start', '0vw')
-			// 	p.bg!.style.setProperty('--transaleX-End', `${100 - widthVW * (pages.length - (activeNext ? 1 : 0))}vw`)
-			// 	p.bg!.style.setProperty('--scale3d-x-Start', `${active ? 0 : 1}`)
-			// 	p.bg!.style.setProperty('--scale3d-x-Mid', `${(100 - widthVW * (pages.length - 1)) / widthVW}`)
-			// 	p.bg!.style.setProperty('--scale3d-x-End', `${activeNext ? 0 : 1}`)
-			// 	p.txt!.style.setProperty('--transaleX-Start', '0vw')
-			// 	p.txt!.style.setProperty('--transaleX-End', `${100 - widthVW * (pages.length - (activeNext ? 1 : 0))}vw`)
-			// }
-			// else {
-			// p.a!.style.setProperty('--delay', `${pages.indexOf(p) * 0.1}s`)
-			// 		p.bg!.style.setProperty('--transform-origin-Start', 'right')
-			// 		p.bg!.style.setProperty('--transform-origin-End', 'left')
-			// 		p.bg!.style.setProperty('--transaleX-Start', active ? `${100 - widthVW * pages.length}vw` : '0vw')
-			// 		p.bg!.style.setProperty('--transaleX-End', active ? '0' : `-${100 - widthVW * (pages.length - (activeNext ? 1 : 0))}vw`)
-			// 		p.bg!.style.setProperty('--scale3d-x-Start', `${active ? 0 : 1}`)
-			// 		p.bg!.style.setProperty('--scale3d-x-Mid', `${(100 - widthVW * (pages.length - 1)) / widthVW}`)
-			// 		p.bg!.style.setProperty('--scale3d-x-End', `${activeNext ? 0 : 1}`)
-			// 	}
-			// p.a!.classList.add('animate')
+			p.a.classList.add(ltr ? 'ltr' : 'rtl')
 		})
-		// const pagesStatic = pages.filter((p) => !pagesSlide.includes(p))
-		// pagesStatic.forEach((p) => {
-		// 	const translateX = '0vw'
-		// 	const scale3dX = '1'
-		// 	p.bg!.style.setProperty('--transaleX-Start', translateX)
-		// 	p.bg!.style.setProperty('--transaleX-End', translateX)
-		// 	p.bg!.style.setProperty('--scale3d-x-Start', scale3dX)
-		// 	p.bg!.style.setProperty('--scale3d-x-Mid', scale3dX)
-		// 	p.bg!.style.setProperty('--scale3d-x-End', scale3dX)
-
-		// 	p.txt!.style.setProperty('--transaleX-Start', '0vw')
-		// 	p.txt!.style.setProperty('--transaleX-End', '0')
-		// })
-
 		await Promise.all(pagesSlide.map((p) => waitForAnimationEnd(p.a!)))
 
-		routeId = nextRouteId
-		nextRouteId = ''
-
 		pages.forEach((p) => {
-			p.txtSpan!.classList.remove('hide')
+			p.txtSpan.classList.replace('hide', 'show')
 		})
-		await Promise.all(pages.map((p) => waitForTransitionEnd(p.txtSpan!)))
+		await Promise.all(pages.map((p) => waitForAnimationEnd(p.txtSpan!)))
+
+		routeId = nextRouteId
+
+		pagesSlide.forEach((p) => {
+			p.a.classList.remove(ltr ? 'ltr' : 'rtl')
+		})
+		pages.forEach((p) => {
+			p.a.style.pointerEvents = 'all'
+			p.txtSpan.classList.remove('show')
+		})
 	})
 </script>
 
@@ -153,6 +118,7 @@
 	}
 	a.active {
 		pointer-events: none;
+		flex: 1;
 	}
 	.bg {
 		position: absolute;
@@ -174,18 +140,38 @@
 		writing-mode: vertical-rl;
 		overflow: hidden;
 	}
-
-	a.active .txt {
-		color: transparent;
+	a.active .txtSpan {
+		visibility: hidden;
 	}
-
 	.txtSpan {
+		animation-duration: 1s;
+		animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1); /* easeInOutQuart */
+		animation-fill-mode: forwards;
 		position: relative;
-		right: 0px;
-		transition: all 500ms cubic-bezier(0.55, 0.055, 0.675, 0.19); /* easeInCubic */
 	}
 	:global(.txtSpan.hide) {
-		right: 40px !important;
+		animation-name: txtSpanHide;
+	}
+	:global(.txtSpan.show) {
+		animation-name: txtSpanShow;
+	}
+	@keyframes txtSpanHide {
+		0% {
+			right: 0px;
+		}
+		100% {
+			right: 40px;
+		}
+	}
+	@keyframes txtSpanShow {
+		0% {
+			right: 40px;
+			visibility: visible;
+		}
+		100% {
+			right: 0px;
+			visibility: visible;
+		}
 	}
 
 	a,
@@ -196,14 +182,19 @@
 		animation-fill-mode: forwards;
 		animation-delay: var(--delay);
 	}
+
+	/* LEFT TO RIGHT */
 	:global(a.ltr:nth-child(1)) {
 		--delay: 0.2s;
+		z-index: 1;
 	}
 	:global(a.ltr:nth-child(2)) {
 		--delay: 0.1s;
+		z-index: 2;
 	}
 	:global(a.ltr:nth-child(3)) {
 		--delay: 0s;
+		z-index: 3;
 	}
 	:global(a.ltr) {
 		animation-name: ltrA;
@@ -240,6 +231,74 @@
 		--scale3d-x-End: 0;
 	}
 	@keyframes ltrBg {
+		0% {
+			transform: scale3d(var(--scale3d-x-Start), 1, 1);
+		}
+
+		50% {
+			transform: scale3d(var(--scale3d-x-Mid), 1, 1);
+		}
+
+		100% {
+			transform: scale3d(var(--scale3d-x-End), 1, 1);
+		}
+	}
+
+	/* RIGHT TO LEFT */
+	:global(a.rtl:nth-child(1)) {
+		--delay: 0s;
+		z-index: 3;
+	}
+	:global(a.rtl:nth-child(2)) {
+		--delay: 0.1s;
+		z-index: 2;
+	}
+	:global(a.rtl:nth-child(3)) {
+		--delay: 0.2s;
+		z-index: 1;
+	}
+	:global(a.rtl) {
+		animation-name: rtlA;
+		--translateX-Start: 0vw;
+		--translateX-End: -73vw;
+	}
+	:global(a.active.rtl) {
+		animation-name: rtlA;
+		--translateX-Start: 73vw;
+		--translateX-End: 0vw;
+	}
+	:global(a.next.rtl) {
+		animation-name: rtlA;
+		--translateX-End: -82vw;
+	}
+	@keyframes rtlA {
+		0% {
+			transform: translateX(var(--translateX-Start));
+		}
+		50% {
+			transform: translateX(var(--translateX-Start));
+		}
+
+		100% {
+			transform: translateX(var(--translateX-End));
+		}
+	}
+
+	:global(a.rtl .bg) {
+		transform-origin: right;
+		animation-name: rtlBg;
+		--scale3d-x-Start: 1;
+		--scale3d-x-Mid: calc(82 / 9);
+		--scale3d-x-End: 1;
+	}
+	:global(a.active.rtl .bg) {
+		--scale3d-x-Start: 0;
+		--scale3d-x-Mid: calc(82 / 9);
+	}
+	:global(a.next.rtl .bg) {
+		--scale3d-x-End: 0;
+	}
+	@keyframes rtlBg {
 		0% {
 			transform: scale3d(var(--scale3d-x-Start), 1, 1);
 		}
