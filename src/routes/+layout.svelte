@@ -91,6 +91,7 @@
 				class="bg"
 				style={`
 					background: ${page.color};
+					filter: drop-shadow(1px 0 0 ${page.color}) drop-shadow(-1px 0 0 ${page.color});
 					max-width: ${widthVW}vw;
 				`}
 			/>
