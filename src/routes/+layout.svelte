@@ -142,6 +142,7 @@
 		position: relative;
 		height: 100%;
 		text-decoration: none;
+		will-change: transform;
 	}
 	a.active {
 		pointer-events: none !important;
@@ -152,6 +153,7 @@
 		height: 100%;
 		width: 100%;
 		max-width: calc(var(--blockWidth) * 1vw);
+		will-change: transform;
 		--scale3d-x-Mid: calc((100 - var(--blockWidth) * (var(--pageCount) - 1))  / var(--blockWidth));
 	}
 
@@ -178,6 +180,7 @@
 		animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1); /* easeInOutQuart */
 		animation-fill-mode: forwards;
 		position: relative;
+		will-change: right;
 	}
 	:global(.txtSpan.hide) {
 		animation-name: txtSpanHide;
