@@ -64,6 +64,17 @@
 	})
 </script>
 
+
+<main>
+	{#each pages as page}
+		<section class:flex1={page.route == nextRouteId}>
+			{#if page.route == nextRouteId}
+				<slot />
+			{/if}
+		</section>
+	{/each}
+</main>
+
 <aside>
 	{#each pages as page}
 		<a
@@ -92,6 +103,7 @@
 	{/each}
 </aside>
 
+
 <style>
 	:global(*) {
 		margin: 0;
@@ -103,12 +115,26 @@
 		/* background: linear-gradient(0deg, #fff, #f9f5ed); */
 	}
 
+	main {
+		position: relative;
+		display: flex;
+		flex-direction: row;
+	}
+
+	section {
+		width: 9vw;
+	}
+	.flex1 {
+		flex: 1;
+	}
+
 	aside {
 		height: 100vh;
 		width: 100%;
 		display: flex;
 		flex-direction: row;
 		position: fixed;
+		top: 0;
 	}
 
 	a {
