@@ -117,7 +117,7 @@
 		text-decoration: none;
 	}
 	a.active {
-		pointer-events: none;
+		pointer-events: none !important;
 		flex: 1;
 	}
 	.bg {
