@@ -26,7 +26,8 @@
 	let routeId = $page.route.id!
 	let nextRouteId = routeId!
 
-	const widthVW = 9
+	const pageCount = pages.length
+	const blockWidth = 9
 
 	navigating.subscribe(async (nav) => {
 		if (nav == null) return
@@ -67,11 +68,12 @@
 
 <main>
 	{#each pages as page}
-		<section class:flex1={page.route == nextRouteId}>
+		<div class:flex1={page.route == nextRouteId}
+		style={`width: ${blockWidth}vw`}>
 			{#if page.route == nextRouteId}
 				<slot />
 			{/if}
-		</section>
+		</div>
 	{/each}
 </main>
 
@@ -83,7 +85,9 @@
 			class:next={page.route == nextRouteId}
 			href={page.route}
 			style={`
-				width: ${widthVW}vw;
+				width: ${blockWidth}vw;
+				--blockWidth: ${blockWidth};
+				--pageCount: ${pageCount};
 			`}
 		>
 			<div
@@ -92,7 +96,6 @@
 				style={`
 					background: ${page.color};
 					filter: drop-shadow(1px 0 0 ${page.color}) drop-shadow(-1px 0 0 ${page.color});
-					max-width: ${widthVW}vw;
 				`}
 			/>
 			<div bind:this={page.txt} class="txt">
@@ -122,9 +125,6 @@
 		flex-direction: row;
 	}
 
-	section {
-		width: 9vw;
-	}
 	.flex1 {
 		flex: 1;
 	}
@@ -151,7 +151,10 @@
 		position: absolute;
 		height: 100%;
 		width: 100%;
+		max-width: calc(var(--blockWidth) * 1vw);
+		--scale3d-x-Mid: calc((100 - var(--blockWidth) * (var(--pageCount) - 1))  / var(--blockWidth));
 	}
+
 	a.active .bg {
 		transform: scale3d(0, 1, 1);
 	}
@@ -225,11 +228,11 @@
 	}
 	:global(a.ltr) {
 		animation-name: ltrA;
-		--translateX-End: 73vw;
+		--translateX-End: calc((100 - var(--blockWidth) * var(--pageCount)) * 1vw);
 	}
 	:global(a.next.ltr) {
 		animation-name: ltrA;
-		--translateX-End: 82vw;
+		--translateX-End: calc((100 - var(--blockWidth) * (var(--pageCount) - 1)) * 1vw);
 	}
 	@keyframes ltrA {
 		0% {
@@ -248,7 +251,6 @@
 		transform-origin: left;
 		animation-name: ltrBg;
 		--scale3d-x-Start: 1;
-		--scale3d-x-Mid: calc(82 / 9);
 		--scale3d-x-End: 1;
 	}
 	:global(a.active.ltr .bg) {
@@ -287,16 +289,16 @@
 	:global(a.rtl) {
 		animation-name: rtlA;
 		--translateX-Start: 0vw;
-		--translateX-End: -73vw;
+		--translateX-End: calc((100 - var(--blockWidth) * var(--pageCount)) * -1vw);
 	}
 	:global(a.active.rtl) {
 		animation-name: rtlA;
-		--translateX-Start: 73vw;
+		--translateX-Start: calc((100 - var(--blockWidth) * var(--pageCount)) * 1vw);
 		--translateX-End: 0vw;
 	}
 	:global(a.next.rtl) {
 		animation-name: rtlA;
-		--translateX-End: -82vw;
+		--translateX-End: calc((100 - var(--blockWidth) * (var(--pageCount) - 1) ) * -1vw);
 	}
 	@keyframes rtlA {
 		0% {
@@ -315,12 +317,10 @@
 		transform-origin: right;
 		animation-name: rtlBg;
 		--scale3d-x-Start: 1;
-		--scale3d-x-Mid: calc(82 / 9);
 		--scale3d-x-End: 1;
 	}
 	:global(a.active.rtl .bg) {
 		--scale3d-x-Start: 0;
-		--scale3d-x-Mid: calc(82 / 9);
 	}
 	:global(a.next.rtl .bg) {
 		--scale3d-x-End: 0;
