@@ -3,8 +3,11 @@
 
 	function waitForAnimationEnd(target: HTMLElement) {
 		return new Promise((resolve) => {
+
 			document.addEventListener('animationend', (event: AnimationEvent) => {
-				if (event.target == target) resolve(target)
+				if (event.target == target) {
+					resolve(target)
+				}
 			})
 		})
 	}
@@ -26,6 +29,7 @@
 	let routeId = $page.route.id!
 	let nextRouteId = routeId!
 
+	
 	const pageCount = pages.length
 	const blockWidth = 9
 
@@ -69,7 +73,7 @@
 <main>
 	{#each pages as page}
 		<div class:flex1={page.route == nextRouteId}
-		style={`width: ${blockWidth}vw`}>
+		style={`width: ${blockWidth}vw`} >
 			{#if page.route == nextRouteId}
 				<slot />
 			{/if}
